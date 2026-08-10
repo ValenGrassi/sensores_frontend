@@ -396,7 +396,9 @@ export function listProfiles(): Profile[] {
 export function updateProfile(id: string, patch: Partial<Omit<Profile, "id">>): Profile | undefined {
   const profile = profiles.find((p) => p.id === id)
   if (!profile) return undefined
-  Object.assign(profile, patch)
+  for (const [key, value] of Object.entries(patch)) {
+    if (value !== undefined) (profile as Record<string, unknown>)[key] = value
+  }
   return profile
 }
 
