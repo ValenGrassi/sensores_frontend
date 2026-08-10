@@ -27,7 +27,7 @@ export function CinemaStatusList() {
           href={`/cines/${cinema.id}`}
           className="flex items-center justify-between gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:bg-accent/50"
         >
-          <div className="flex min-w-0 flex-col">
+          <div className="flex min-w-0 flex-1 flex-col">
             <span className="truncate text-sm font-medium text-foreground">{cinema.name}</span>
             <span className="truncate text-xs text-muted-foreground">{cinema.address}</span>
           </div>
