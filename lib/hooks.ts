@@ -7,12 +7,12 @@ import type {
   CinemaSummary,
   DashboardSummary,
   DateRangePreset,
-  Incident,
   Measurement,
   Profile,
+  Room,
   SensorWithContext,
 } from "@/lib/types"
-import type { MeasurementRow, ReportResult } from "@/lib/server/store"
+import type { MeasurementRow } from "@/lib/server/store"
 
 // Live-ish sections poll on an interval so the UI reflects new
 // measurements without the user needing to refresh — this mirrors how the
@@ -84,22 +84,11 @@ export function useAlerts(active?: boolean) {
   return useSWR<Alert[]>(key, fetcher, { refreshInterval: LIVE_REFRESH_MS })
 }
 
-export function useIncidents() {
-  return useSWR<Incident[]>("/api/incidents", fetcher, { refreshInterval: LIVE_REFRESH_MS })
-}
-
 export function useProfiles() {
   return useSWR<Profile[]>("/api/profiles", fetcher)
 }
 
-export function useReport(params: {
-  cinemaId?: string
-  roomId?: string
-  sensorId?: string
-  preset?: DateRangePreset
-  from?: string
-  to?: string
-}) {
-  const key = `/api/reports${toQuery(params)}`
-  return useSWR<ReportResult>(key, fetcher)
+export function useRooms(cinemaId?: string) {
+  const key = `/api/rooms${toQuery({ cinemaId })}`
+  return useSWR<Room[]>(key, fetcher)
 }

@@ -8,6 +8,7 @@ import { useSensor, useSensorMeasurements } from "@/lib/hooks"
 import { SensorStatusIndicator } from "@/components/status-indicator"
 import { DateRangeSelect } from "@/components/date-range-select"
 import { SensorChart } from "@/components/sensor-chart"
+import { EditSensorDialog } from "@/components/edit-sensor-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from "@/components/ui/empty"
@@ -65,7 +66,10 @@ export default function SensorDetailPage() {
               {sensor.cinema.name} · {sensor.room.name} · {sensor.devEui}
             </span>
           </div>
-          <SensorStatusIndicator status={sensor.status} />
+          <div className="flex shrink-0 items-center gap-3">
+            <SensorStatusIndicator status={sensor.status} />
+            <EditSensorDialog sensor={sensor} />
+          </div>
         </div>
       </div>
 

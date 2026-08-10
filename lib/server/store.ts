@@ -24,8 +24,6 @@ import type {
   CinemaStatus,
   CinemaSummary,
   DashboardSummary,
-  Incident,
-  IncidentStatus,
   Measurement,
   Profile,
   Room,
@@ -245,7 +243,7 @@ export function alertTypeLabel(type: AlertType) {
   return alertTypeLabels[type]
 }
 
-// Resolved alerts kept around so the Alertas/Reportes screens have some
+// Resolved alerts kept around so the Alertas screen has some
 // history to show beyond whatever is active right now.
 const resolvedAlertSeed: Alert[] = [
   {
@@ -312,80 +310,6 @@ export function getAlert(alertId: string, nowMs = Date.now()): Alert | undefined
 }
 
 // ---------------------------------------------------------------------------
-// Incidents — simple in-memory mutable log.
-// ---------------------------------------------------------------------------
-
-let incidentSeq = 124
-const incidents: Incident[] = [
-  {
-    id: "124",
-    alertId: "alert-seed-1",
-    cinemaId: "cine-abasto",
-    roomId: "cine-abasto-sala-2",
-    sensorId: "cine-abasto-sala-2-sensor",
-    title: "Sala 2 - Temperatura elevada",
-    description: "Se revisó el sistema de climatización. Filtro obstruido, reemplazado.",
-    status: "resolved",
-    createdAt: daysAgoIso(6, 9, 45),
-    resolvedAt: daysAgoIso(6, 11, 10),
-  },
-  {
-    id: "123",
-    alertId: "alert-seed-2",
-    cinemaId: "cine-palermo",
-    roomId: "cine-palermo-sala-4",
-    sensorId: "cine-palermo-sala-4-sensor",
-    title: "Sala 4 - Temperatura baja",
-    description: "Aire acondicionado configurado por debajo del rango permitido. Ajustado el termostato.",
-    status: "resolved",
-    createdAt: daysAgoIso(12, 3, 20),
-    resolvedAt: daysAgoIso(12, 4, 10),
-  },
-]
-
-export function listIncidents(): Incident[] {
-  return [...incidents].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-}
-
-export function getIncident(id: string): Incident | undefined {
-  return incidents.find((i) => i.id === id)
-}
-
-export function createIncident(input: {
-  title: string
-  description: string
-  sensorId: string
-  alertId?: string | null
-}): Incident {
-  const sensor = getSensor(input.sensorId)
-  const room = sensor ? getRoom(sensor.roomId) : undefined
-  const cinema = room ? getCinema(room.cinemaId) : undefined
-  incidentSeq += 1
-  const incident: Incident = {
-    id: String(incidentSeq),
-    alertId: input.alertId ?? null,
-    cinemaId: cinema?.id ?? "",
-    roomId: room?.id ?? "",
-    sensorId: input.sensorId,
-    title: input.title,
-    description: input.description,
-    status: "open",
-    createdAt: new Date().toISOString(),
-    resolvedAt: null,
-  }
-  incidents.unshift(incident)
-  return incident
-}
-
-export function updateIncidentStatus(id: string, status: IncidentStatus): Incident | undefined {
-  const incident = incidents.find((i) => i.id === id)
-  if (!incident) return undefined
-  incident.status = status
-  incident.resolvedAt = status === "resolved" ? new Date().toISOString() : null
-  return incident
-}
-
-// ---------------------------------------------------------------------------
 // Profiles — editable in-memory list.
 // ---------------------------------------------------------------------------
 
@@ -403,71 +327,25 @@ export function updateProfile(id: string, patch: Partial<Omit<Profile, "id">>): 
 }
 
 // ---------------------------------------------------------------------------
-// Reports
+// Rooms / Sensors — editable in-memory fields (name, room assignment).
 // ---------------------------------------------------------------------------
 
-export interface ReportResult {
-  temperatureMin: number | null
-  temperatureMax: number | null
-  temperatureAvg: number | null
-  humidityMin: number | null
-  humidityMax: number | null
-  humidityAvg: number | null
-  alertCount: number
-  offlineMinutes: number
-  incidentCount: number
-  sampleCount: number
+export function listRooms(cinemaId?: string): Room[] {
+  return cinemaId ? getRoomsByCinema(cinemaId) : rooms
 }
 
-export function buildReport(params: {
-  cinemaId?: string
-  roomId?: string
-  sensorId?: string
-  fromMs: number
-  toMs: number
-  nowMs?: number
-}): ReportResult {
-  const rowsData = listMeasurementRows(params)
-  const temps = rowsData.map((r) => r.temperature)
-  const hums = rowsData.map((r) => r.humidity)
-  const alertCount = rowsData.filter((r) => r.status === "alert").length
-
-  let targetSensorIds = sensors.map((s) => s.id)
-  if (params.sensorId) targetSensorIds = [params.sensorId]
-  else if (params.roomId) targetSensorIds = getSensorsByRoom(params.roomId).map((s) => s.id)
-  else if (params.cinemaId) targetSensorIds = getSensorsByCinema(params.cinemaId).map((s) => s.id)
-
-  const relevantIncidents = listIncidents().filter(
-    (inc) =>
-      targetSensorIds.includes(inc.sensorId) &&
-      new Date(inc.createdAt).getTime() >= params.fromMs &&
-      new Date(inc.createdAt).getTime() <= params.toMs,
-  )
-
-  const nowMs = params.nowMs ?? Date.now()
-  const offlineMinutes = targetSensorIds.reduce((sum, id) => {
-    const sensor = getSensor(id)
-    if (!sensor) return sum
-    const runtime = getSensorRuntime(sensor, nowMs)
-    if (runtime.status !== "offline") return sum
-    const lastSeenMs = new Date(runtime.lastSeen).getTime()
-    return sum + (nowMs - lastSeenMs) / 60000
-  }, 0)
-
-  const avg = (values: number[]) => (values.length ? values.reduce((a, b) => a + b, 0) / values.length : null)
-
-  return {
-    temperatureMin: temps.length ? Math.min(...temps) : null,
-    temperatureMax: temps.length ? Math.max(...temps) : null,
-    temperatureAvg: avg(temps),
-    humidityMin: hums.length ? Math.min(...hums) : null,
-    humidityMax: hums.length ? Math.max(...hums) : null,
-    humidityAvg: avg(hums),
-    alertCount,
-    offlineMinutes: Math.round(offlineMinutes),
-    incidentCount: relevantIncidents.length,
-    sampleCount: rowsData.length,
+export function updateSensor(id: string, patch: { name?: string; roomId?: string }): Sensor | undefined {
+  const sensor = getSensor(id)
+  if (!sensor) return undefined
+  if (patch.name !== undefined) sensor.name = patch.name
+  if (patch.roomId !== undefined && patch.roomId !== sensor.roomId) {
+    const room = getRoom(patch.roomId)
+    if (room) {
+      sensor.roomId = room.id
+      sensor.profileId = room.profileId
+    }
   }
+  return sensor
 }
 
 export { cinemas, rooms, sensors, profiles }

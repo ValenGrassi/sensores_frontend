@@ -1,6 +1,6 @@
 "use client"
 
-import { Building2, Radio, WifiOff, AlertTriangle, Thermometer } from "lucide-react"
+import { Building2, Radio, WifiOff, AlertTriangle } from "lucide-react"
 import { useDashboard } from "@/lib/hooks"
 import { MetricCard } from "@/components/dashboard/metric-card"
 import { CinemaStatusList } from "@/components/dashboard/cinema-status-list"
@@ -19,9 +19,9 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-5">
         {isLoading || !summary ? (
-          Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-[72px] w-full" />)
+          Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-[72px] w-full" />)
         ) : (
           <>
             <MetricCard label="Cines" value={summary.cinemaCount} icon={Building2} />
@@ -29,12 +29,6 @@ export default function DashboardPage() {
             <MetricCard label="Online" value={summary.sensorsOnline} icon={Radio} tone="ok" />
             <MetricCard label="Sin comunicación" value={summary.sensorsOffline} icon={WifiOff} tone="attention" />
             <MetricCard label="En alerta" value={summary.sensorsAlert} icon={AlertTriangle} tone="alert" />
-            <MetricCard
-              label="Temp. promedio"
-              value={summary.avgTemperature.toFixed(1)}
-              suffix="°C"
-              icon={Thermometer}
-            />
           </>
         )}
       </div>

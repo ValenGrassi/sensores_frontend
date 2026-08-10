@@ -12,8 +12,6 @@ export type AlertType =
   | "humidity_high"
   | "humidity_low"
 
-export type IncidentStatus = "open" | "resolved"
-
 export interface Profile {
   id: string
   name: string
@@ -72,19 +70,6 @@ export interface Alert {
   createdAt: string
   resolvedAt: string | null
   active: boolean
-}
-
-export interface Incident {
-  id: string
-  alertId: string | null
-  cinemaId: string
-  roomId: string
-  sensorId: string
-  title: string
-  description: string
-  status: IncidentStatus
-  createdAt: string
-  resolvedAt: string | null
 }
 
 // Denormalized shapes used by the UI for convenience. The service layer

@@ -2,13 +2,12 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { AlertTriangle, Thermometer, Droplets, CheckCircle2 } from "lucide-react"
-import { useAlerts, useSensors, useIncidents } from "@/lib/hooks"
+import { AlertTriangle, Thermometer, Droplets } from "lucide-react"
+import { useAlerts, useSensors } from "@/lib/hooks"
 import { alertTypeLabel } from "@/lib/alert-labels"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
-import { CreateIncidentDialog } from "@/components/create-incident-dialog"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from "@/components/ui/empty"
 import { formatDistanceToNow } from "date-fns"
 import { es } from "date-fns/locale"
@@ -18,17 +17,11 @@ export default function AlertasPage() {
   const [tab, setTab] = React.useState<"active" | "history">("active")
   const { data: alerts, isLoading } = useAlerts(tab === "active" ? true : undefined)
   const { data: sensors } = useSensors()
-  const { data: incidents } = useIncidents()
 
   const sensorMap = React.useMemo(() => {
     const map = new Map(sensors?.map((s) => [s.id, s]))
     return map
   }, [sensors])
-
-  const alertIdsWithIncident = React.useMemo(
-    () => new Set(incidents?.map((i) => i.alertId).filter(Boolean)),
-    [incidents],
-  )
 
   const rows = tab === "history" ? alerts?.filter((a) => !a.active) : alerts
 
@@ -59,7 +52,6 @@ export default function AlertasPage() {
           {rows.map((alert) => {
             const sensor = sensorMap.get(alert.sensorId)
             const isTemp = alert.type.startsWith("temperature")
-            const hasIncident = alertIdsWithIncident.has(alert.id)
             return (
               <div
                 key={alert.id}
@@ -101,16 +93,14 @@ export default function AlertasPage() {
                   </div>
                 </div>
 
-                <div className="flex shrink-0 items-center gap-2 sm:ml-4">
-                  {hasIncident ? (
-                    <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                      <CheckCircle2 className="size-4 text-status-ok" />
-                      Incidente creado
-                    </span>
-                  ) : (
-                    <CreateIncidentDialog alert={alert} sensor={sensor} />
-                  )}
-                </div>
+                {sensor && (
+                  <Link
+                    href={`/sensores/${sensor.id}`}
+                    className="shrink-0 text-sm text-muted-foreground hover:text-foreground hover:underline sm:ml-4"
+                  >
+                    Ver sensor
+                  </Link>
+                )}
               </div>
             )
           })}

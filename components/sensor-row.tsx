@@ -20,7 +20,9 @@ export function SensorRow({ sensor, showContext = false }: { sensor: SensorWithC
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="truncate text-sm font-medium text-foreground">{sensor.name}</span>
         <span className="truncate text-xs text-muted-foreground">
-          {showContext ? `${sensor.cinema.name} · ${sensor.room.name}` : sensor.devEui}
+          {showContext
+            ? `${sensor.cinema.name} · ${sensor.room.name} · ${sensor.devEui}`
+            : sensor.devEui}
         </span>
       </div>
 

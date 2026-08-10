@@ -5,8 +5,6 @@ import { usePathname } from "next/navigation"
 import {
   AlertTriangle,
   Building2,
-  ClipboardList,
-  FileBarChart,
   History,
   LayoutDashboard,
   Radio,
@@ -26,7 +24,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { useAlerts, useSensors } from "@/lib/hooks"
+import { useAlerts } from "@/lib/hooks"
+import { UserMenu } from "@/components/user-menu"
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -34,15 +33,12 @@ const navItems = [
   { href: "/sensores", label: "Sensores", icon: Radio },
   { href: "/historial", label: "Historial", icon: History },
   { href: "/alertas", label: "Alertas", icon: AlertTriangle, badgeKey: "alerts" as const },
-  { href: "/incidentes", label: "Incidentes", icon: ClipboardList },
-  { href: "/reportes", label: "Reportes", icon: FileBarChart },
   { href: "/configuracion", label: "Configuración", icon: Settings },
 ]
 
 export function AppSidebar() {
   const pathname = usePathname()
   const { data: activeAlerts } = useAlerts(true)
-  const { data: offlineSensors } = useSensors({ status: "offline" })
 
   const badgeCount = (key: "alerts" | undefined) => {
     if (key === "alerts") return activeAlerts?.length ?? 0
@@ -88,11 +84,8 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border/60 group-data-[collapsible=icon]:hidden">
-        <div className="flex flex-col gap-0.5 px-2 py-1 text-xs text-sidebar-foreground/60">
-          <span>{offlineSensors?.length ?? 0} sensores sin comunicación</span>
-          <span>V1 · Datos de demostración</span>
-        </div>
+      <SidebarFooter className="border-t border-sidebar-border/60">
+        <UserMenu />
       </SidebarFooter>
     </Sidebar>
   )

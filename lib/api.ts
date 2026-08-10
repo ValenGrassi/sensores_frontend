@@ -28,21 +28,18 @@ export const api = {
   getSensors: (params?: { cinemaId?: string; roomId?: string; status?: string }) =>
     request(`/api/sensors${toQuery(params)}`),
   getSensor: (id: string) => request(`/api/sensors/${id}`),
+  updateSensor: (id: string, patch: Record<string, unknown>) =>
+    request(`/api/sensors/${id}`, { method: "PATCH", body: JSON.stringify(patch) }),
   getSensorMeasurements: (id: string, params?: { preset?: string; from?: string; to?: string }) =>
     request(`/api/sensors/${id}/measurements${toQuery(params)}`),
   getMeasurements: (params?: Record<string, string | number | undefined>) =>
     request(`/api/measurements${toQuery(params)}`),
   getAlerts: (params?: { active?: boolean }) =>
     request(`/api/alerts${toQuery(params ? { active: String(params.active) } : undefined)}`),
-  getIncidents: () => request("/api/incidents"),
-  createIncident: (input: { title: string; description: string; sensorId: string; alertId?: string | null }) =>
-    request("/api/incidents", { method: "POST", body: JSON.stringify(input) }),
-  updateIncidentStatus: (id: string, status: "open" | "resolved") =>
-    request(`/api/incidents/${id}`, { method: "PATCH", body: JSON.stringify({ status }) }),
+  getRooms: (params?: { cinemaId?: string }) => request(`/api/rooms${toQuery(params)}`),
   getProfiles: () => request("/api/profiles"),
   updateProfile: (id: string, patch: Record<string, unknown>) =>
     request(`/api/profiles/${id}`, { method: "PATCH", body: JSON.stringify(patch) }),
-  getReport: (params?: Record<string, string | number | undefined>) => request(`/api/reports${toQuery(params)}`),
 }
 
 function toQuery(params?: Record<string, string | number | boolean | undefined>) {
