@@ -52,7 +52,7 @@ export function ActiveAlertsPanel() {
         return (
           <Link
             key={alert.id}
-            href={sensor ? `/sensores/${sensor.id}` : "/alertas"}
+            href={sensor ? `/sensores/${sensor.devEui}` : "/alertas"}
             className="flex items-center gap-4 rounded-lg border border-status-alert/30 bg-status-alert/5 p-4 transition-colors hover:bg-status-alert/10"
           >
             <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-status-alert/15 text-status-alert">
