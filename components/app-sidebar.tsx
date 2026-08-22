@@ -49,7 +49,7 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r-0">
       <SidebarHeader className="gap-0 border-b border-sidebar-border/60 py-4">
-        <div className="flex items-center gap-3 px-2">
+        <div className="flex items-center gap-3 px-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
           <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sidebar-primary to-sidebar-primary/70 text-sidebar-primary-foreground shadow-sm shadow-sidebar-primary/30">
             <Thermometer className="size-4.5" />
           </div>
