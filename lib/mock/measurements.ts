@@ -7,6 +7,19 @@ const DAY = 24 * HOUR
 const INSTALL_WINDOW_DAYS = 200
 const ALERT_WINDOW_MS = 3 * HOUR
 
+// The "offline" demo sensor also had a longer silent stretch a few days back
+// (in addition to its current outage), so historical charts show a real gap
+// in reporting instead of a continuous line across missing days.
+const HISTORICAL_OUTAGE_START_DAYS_AGO = 11
+const HISTORICAL_OUTAGE_END_DAYS_AGO = 2
+
+function isInHistoricalOutage(scenario: SensorScenario, tMs: number, nowMs: number) {
+  if (scenario !== "offline") return false
+  return (
+    tMs >= nowMs - HISTORICAL_OUTAGE_START_DAYS_AGO * DAY && tMs <= nowMs - HISTORICAL_OUTAGE_END_DAYS_AGO * DAY
+  )
+}
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value))
 }
@@ -111,6 +124,7 @@ export function generateSeries(
   stepMs: number,
   nowMs: number,
 ): Measurement[] {
+  const scenario = getSensorScenario(sensorId)
   const lastSeen = lastSeenMsFor(sensorId, nowMs)
   const clippedTo = Math.min(toMs, lastSeen)
   const points: Measurement[] = []
@@ -119,6 +133,7 @@ export function generateSeries(
   const totalSteps = Math.floor((clippedTo - fromMs) / stepMs) + 1
   const effectiveStep = totalSteps > maxPoints ? Math.ceil(((clippedTo - fromMs) / maxPoints)) : stepMs
   for (let t = fromMs; t <= clippedTo; t += effectiveStep) {
+    if (isInHistoricalOutage(scenario, t, nowMs)) continue
     const reading = computeReadingAt(sensorId, profileId, t, nowMs)
     points.push({
       id: `${sensorId}-${t}`,

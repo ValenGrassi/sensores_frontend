@@ -14,10 +14,10 @@ import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui
 
 // Mock signed-in user until real auth is wired up.
 const currentUser = {
-  name: "Marina Ríos",
-  role: "Administradora de Mantenimiento",
-  email: "marina.rios@cinemark.com.ar",
-  initials: "MR",
+  name: "Valentino Grassi",
+  role: "Administrador de Mantenimiento",
+  email: "valentino.grassi@cinemark.com.ar",
+  initials: "VG",
 }
 
 export function UserMenu() {
@@ -29,12 +29,12 @@ export function UserMenu() {
             render={
               <SidebarMenuButton
                 size="lg"
-                className="data-open:bg-sidebar-accent data-open:text-sidebar-accent-foreground"
+                className="rounded-lg transition-colors duration-150 hover:bg-sidebar-accent/70 data-open:bg-sidebar-accent data-open:text-sidebar-accent-foreground"
               />
             }
           >
-            <Avatar className="size-8 rounded-md">
-              <AvatarFallback className="rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
+            <Avatar className="size-8 rounded-lg">
+              <AvatarFallback className="rounded-lg bg-gradient-to-br from-sidebar-primary to-sidebar-primary/70 font-medium text-sidebar-primary-foreground">
                 {currentUser.initials}
               </AvatarFallback>
             </Avatar>
