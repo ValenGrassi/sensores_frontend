@@ -22,12 +22,36 @@ export function SensorChart({
   min: number
   max: number
 }) {
-  const data = measurements.map((m) => ({
+  const points = measurements.map((m) => ({
     timestamp: m.timestamp,
     value: metric === "temperature" ? m.temperature : m.humidity,
   }))
-  const firstTs = data[0] ? new Date(data[0].timestamp).getTime() : 0
-  const lastTs = data[data.length - 1] ? new Date(data[data.length - 1].timestamp).getTime() : 0
+
+  // Detect silent periods (e.g. a sensor that reported on Aug 13 and then
+  // again on Aug 22) and insert a null breakpoint so the chart renders a
+  // visible blank gap instead of a misleading straight line across the void.
+  const diffsMs = points
+    .slice(1)
+    .map((p, i) => new Date(p.timestamp).getTime() - new Date(points[i].timestamp).getTime())
+    .filter((d) => d > 0)
+  const sortedDiffs = [...diffsMs].sort((a, b) => a - b)
+  const typicalStepMs = sortedDiffs[Math.floor(sortedDiffs.length / 2)] ?? 0
+  const GAP_THRESHOLD_MS = Math.max(typicalStepMs * 4, 6 * 60 * 60 * 1000)
+
+  const data: { timestamp: string; value: number | null; gap?: boolean }[] = []
+  points.forEach((point, index) => {
+    if (index > 0) {
+      const prevTs = new Date(points[index - 1].timestamp).getTime()
+      const curTs = new Date(point.timestamp).getTime()
+      if (curTs - prevTs > GAP_THRESHOLD_MS) {
+        data.push({ timestamp: new Date((prevTs + curTs) / 2).toISOString(), value: null, gap: true })
+      }
+    }
+    data.push(point)
+  })
+
+  const firstTs = points[0] ? new Date(points[0].timestamp).getTime() : 0
+  const lastTs = points[points.length - 1] ? new Date(points[points.length - 1].timestamp).getTime() : 0
   const spansMultipleDays = lastTs - firstTs > 36 * 60 * 60 * 1000
 
   return (
@@ -67,7 +91,11 @@ export function SensorChart({
           content={
             <ChartTooltipContent
               labelFormatter={(value) => format(new Date(value as string), "PPpp", { locale: es })}
-              formatter={(value) => [`${value}${metric === "temperature" ? "°C" : "%"}`, chartConfig[metric].label]}
+              formatter={(value) =>
+                value === null || value === undefined
+                  ? ["Sin datos", "Sensor sin comunicación"]
+                  : [`${value}${metric === "temperature" ? "°C" : "%"}`, chartConfig[metric].label]
+              }
             />
           }
         />
