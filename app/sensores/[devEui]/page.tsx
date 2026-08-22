@@ -17,10 +17,10 @@ import { formatDistanceToNow } from "date-fns"
 import { es } from "date-fns/locale"
 
 export default function SensorDetailPage() {
-  const params = useParams<{ id: string }>()
-  const { data: sensor, isLoading } = useSensor(params.id)
+  const params = useParams<{ devEui: string }>()
+  const { data: sensor, isLoading } = useSensor(params.devEui)
   const [preset, setPreset] = React.useState<DateRangePreset>("24h")
-  const { data: measurements, isLoading: measurementsLoading } = useSensorMeasurements(params.id, preset)
+  const { data: measurements, isLoading: measurementsLoading } = useSensorMeasurements(params.devEui, preset)
 
   if (isLoading) {
     return (

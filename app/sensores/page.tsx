@@ -25,14 +25,15 @@ const statusTabs: { value: "all" | SensorStatus; label: string }[] = [
 ]
 
 export default function SensoresPage() {
-  const { cinemaId } = useCinemaFilter()
+  // const { cinemaId } = useCinemaFilter()
   const [status, setStatus] = React.useState<"all" | SensorStatus>("all")
   const [query, setQuery] = React.useState("")
 
-  const { data: sensors, isLoading } = useSensors({
-    cinemaId: cinemaId ?? undefined,
-    status: status === "all" ? undefined : status,
-  })
+  // const { data: sensors, isLoading } = useSensors({
+  //   cinemaId: cinemaId ?? undefined,
+  //   status: status === "all" ? undefined : status,
+  // })
+  const { data: sensors, isLoading, error } = useSensors()
 
   const filtered = React.useMemo(() => {
     if (!sensors) return sensors
@@ -88,7 +89,7 @@ export default function SensoresPage() {
       ) : filtered && filtered.length > 0 ? (
         <div className="flex flex-col gap-2">
           {filtered.map((sensor) => (
-            <SensorRow key={sensor.id} sensor={sensor} showContext />
+            <SensorRow key={sensor.devEui} sensor={sensor} showContext={false} />
           ))}
         </div>
       ) : (

@@ -103,4 +103,14 @@ export interface DashboardSummary {
   avgHumidity: number
 }
 
+export interface ApiSensor {
+  id: string
+  devEui: string
+  name: string | null
+  temperature: number | null
+  humidity: number | null
+  battery: number | null
+  lastSeen: string | null
+}
+
 export type DateRangePreset = "24h" | "7d" | "30d" | "3m" | "6m" | "all" | "custom"

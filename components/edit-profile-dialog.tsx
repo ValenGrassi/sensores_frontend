@@ -27,6 +27,11 @@ export function EditProfileDialog({ profile }: { profile: Profile }) {
   const [humMin, setHumMin] = useState(String(profile.humidityMin))
   const [humMax, setHumMax] = useState(String(profile.humidityMax))
   const [submitting, setSubmitting] = useState(false)
+  const invalidTemperature =
+  Number(tempMax) < Number(tempMin)
+
+const invalidHumidity =
+  Number(humMax) < Number(humMin)
 
   async function handleSubmit() {
     setSubmitting(true)
@@ -63,7 +68,14 @@ export function EditProfileDialog({ profile }: { profile: Profile }) {
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="tmax">Temp. máxima (°C)</Label>
-            <Input id="tmax" type="number" step="0.1" value={tempMax} onChange={(e) => setTempMax(e.target.value)} />
+            <Input
+  id="tmax"
+  type="number"
+  step="0.1"
+  value={tempMax}
+  onChange={(e) => setTempMax(e.target.value)}
+  min={tempMin}
+/>
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="hmin">Humedad mínima (%)</Label>
@@ -71,14 +83,24 @@ export function EditProfileDialog({ profile }: { profile: Profile }) {
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="hmax">Humedad máxima (%)</Label>
-            <Input id="hmax" type="number" step="1" value={humMax} onChange={(e) => setHumMax(e.target.value)} />
+            <Input
+  id="hmax"
+  type="number"
+  step="1"
+  value={humMax}
+  onChange={(e) => setHumMax(e.target.value)}
+  min={humMin}
+/>
           </div>
         </div>
         <DialogFooter>
           <DialogClose render={<Button variant="outline" />}>Cancelar</DialogClose>
-          <Button onClick={handleSubmit} disabled={submitting}>
-            Guardar cambios
-          </Button>
+          <Button
+  onClick={handleSubmit}
+  disabled={submitting || invalidTemperature || invalidHumidity}
+>
+  {submitting ? "Guardando..." : "Guardar cambios"}
+</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

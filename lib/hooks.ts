@@ -45,13 +45,28 @@ export function useCinema(id: string | undefined) {
   return useSWR<CinemaDetail>(id ? `/api/cinemas/${id}` : null, fetcher, { refreshInterval: LIVE_REFRESH_MS })
 }
 
-export function useSensors(filters?: { cinemaId?: string; roomId?: string; status?: string }) {
-  const key = `/api/sensors${toQuery(filters)}`
-  return useSWR<SensorWithContext[]>(key, fetcher, { refreshInterval: LIVE_REFRESH_MS })
+// export function useSensors(filters?: { cinemaId?: string; roomId?: string; status?: string }) {
+//   const key = `/api/sensors${toQuery(filters)}`
+//   return useSWR<SensorWithContext[]>(key, fetcher, { refreshInterval: LIVE_REFRESH_MS })
+// }
+export function useSensors() {
+  return useSWR<SensorWithContext[]>(
+    "/api/sensors",
+    fetcher,
+    {
+      refreshInterval: LIVE_REFRESH_MS,
+    }
+  )
 }
 
-export function useSensor(id: string | undefined) {
-  return useSWR<SensorWithContext>(id ? `/api/sensors/${id}` : null, fetcher, { refreshInterval: LIVE_REFRESH_MS })
+export function useSensor(devEui: string | undefined) {
+  return useSWR<SensorWithContext | null>(
+    devEui ? `/api/sensors/${devEui}` : null,
+    fetcher,
+    {
+      refreshInterval: LIVE_REFRESH_MS,
+    }
+  )
 }
 
 export function useSensorMeasurements(
@@ -71,6 +86,7 @@ export function useMeasurements(params: {
   sensorId?: string
   preset?: DateRangePreset
   from?: string
+  battery?: number
   to?: string
   page?: number
   pageSize?: number
@@ -92,3 +108,5 @@ export function useRooms(cinemaId?: string) {
   const key = `/api/rooms${toQuery({ cinemaId })}`
   return useSWR<Room[]>(key, fetcher)
 }
+
+

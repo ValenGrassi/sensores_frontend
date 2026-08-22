@@ -33,6 +33,23 @@ export default function HistorialPage() {
     pageSize: PAGE_SIZE,
   })
 
+  React.useEffect(() => {
+    console.log("========== HISTORIAL ==========")
+    console.log("DATA COMPLETA:", data)
+    console.log("ROWS:", data?.rows)
+
+    if (data?.rows) {
+      data.rows.forEach((row, index) => {
+        console.log(`--- ROW ${index} ---`)
+        console.log("ID:", row.id)
+        console.log("Temperature:", row.temperature)
+        console.log("Humidity:", row.humidity)
+        console.log("Battery:", row.battery)
+        console.log("ROW COMPLETA:", row)
+      })
+    }
+  }, [data])
+  
   const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1
 
   React.useEffect(() => {
@@ -84,12 +101,10 @@ export default function HistorialPage() {
                 <TableRow>
                   <TableHead>Fecha y hora</TableHead>
                   <TableHead>Cine</TableHead>
-                  <TableHead>Sala</TableHead>
                   <TableHead>Sensor</TableHead>
                   <TableHead className="text-right">Temp.</TableHead>
                   <TableHead className="text-right">Humedad</TableHead>
                   <TableHead className="text-right">Batería</TableHead>
-                  <TableHead>Estado</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -99,13 +114,21 @@ export default function HistorialPage() {
                       {format(new Date(row.timestamp), "d MMM yyyy, HH:mm", { locale: es })}
                     </TableCell>
                     <TableCell className="whitespace-nowrap">{row.cinemaName}</TableCell>
-                    <TableCell className="whitespace-nowrap">{row.roomName}</TableCell>
                     <TableCell className="whitespace-nowrap">{row.sensorName}</TableCell>
-                    <TableCell className="text-right tabular-nums">{row.temperature.toFixed(1)}°C</TableCell>
-                    <TableCell className="text-right tabular-nums">{row.humidity.toFixed(0)}%</TableCell>
-                    <TableCell className="text-right tabular-nums">{row.battery}%</TableCell>
-                    <TableCell>
-                      <SensorStatusIndicator status={row.status} className="text-xs" />
+                    <TableCell className="text-right tabular-nums">
+                      {row.temperature !== null && row.temperature !== undefined
+                        ? `${row.temperature.toFixed(1)}°C`
+                        : "-"}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {row.humidity !== null && row.humidity !== undefined
+                        ? `${row.humidity.toFixed(1)}%`
+                        : "-"}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {row.battery !== null && row.battery !== undefined
+                        ? `${row.battery}%`
+                        : "-"}
                     </TableCell>
                   </TableRow>
                 ))}

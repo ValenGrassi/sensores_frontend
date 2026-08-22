@@ -3,7 +3,7 @@
 // point NEXT_PUBLIC_API_BASE_URL at it (or replace the route handlers under
 // app/api with proxies) — this file and every hook in lib/hooks.ts stay the same.
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? ""
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5000"
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
@@ -28,8 +28,8 @@ export const api = {
   getSensors: (params?: { cinemaId?: string; roomId?: string; status?: string }) =>
     request(`/api/sensors${toQuery(params)}`),
   getSensor: (id: string) => request(`/api/sensors/${id}`),
-  updateSensor: (id: string, patch: Record<string, unknown>) =>
-    request(`/api/sensors/${id}`, { method: "PATCH", body: JSON.stringify(patch) }),
+  updateSensor: (devEui: string, patch: Record<string, unknown>) =>
+    request(`/api/sensors/${devEui}`, { method: "PATCH", body: JSON.stringify(patch) }),
   getSensorMeasurements: (id: string, params?: { preset?: string; from?: string; to?: string }) =>
     request(`/api/sensors/${id}/measurements${toQuery(params)}`),
   getMeasurements: (params?: Record<string, string | number | undefined>) =>
@@ -37,9 +37,45 @@ export const api = {
   getAlerts: (params?: { active?: boolean }) =>
     request(`/api/alerts${toQuery(params ? { active: String(params.active) } : undefined)}`),
   getRooms: (params?: { cinemaId?: string }) => request(`/api/rooms${toQuery(params)}`),
-  getProfiles: () => request("/api/profiles"),
-  updateProfile: (id: string, patch: Record<string, unknown>) =>
-    request(`/api/profiles/${id}`, { method: "PATCH", body: JSON.stringify(patch) }),
+  getProfiles: () =>
+  request("/api/profiles"),
+
+getProfile: (id: string) =>
+  request(`/api/profiles/${id}`),
+
+createProfile: (data: {
+  name: string
+  description?: string
+  temperatureMin: number
+  temperatureMax: number
+  humidityMin: number
+  humidityMax: number
+}) =>
+  request("/api/profiles", {
+    method: "POST",
+    body: JSON.stringify(data),
+  }),
+
+updateProfile: (
+  id: string,
+  patch: {
+    name?: string
+    description?: string
+    temperatureMin?: number
+    temperatureMax?: number
+    humidityMin?: number
+    humidityMax?: number
+  }
+) =>
+  request(`/api/profiles/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(patch),
+  }),
+
+deleteProfile: (id: string) =>
+  request(`/api/profiles/${id}`, {
+    method: "DELETE",
+  }),
 }
 
 function toQuery(params?: Record<string, string | number | boolean | undefined>) {
