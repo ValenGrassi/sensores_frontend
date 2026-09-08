@@ -3,7 +3,7 @@
 // point NEXT_PUBLIC_API_BASE_URL at it (or replace the route handlers under
 // app/api with proxies) — this file and every hook in lib/hooks.ts stay the same.
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5000"
+const API_BASE = "https://sensores-backend-2fa8.onrender.com"
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
