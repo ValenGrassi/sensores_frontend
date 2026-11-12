@@ -15,6 +15,7 @@ import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from "@/
 import type { DateRangePreset } from "@/lib/types"
 import { formatDistanceToNow } from "date-fns"
 import { es } from "date-fns/locale"
+import { formatBattery, formatHumidity, formatTemperature } from "@/lib/format"
 
 export default function SensorDetailPage() {
   const params = useParams<{ devEui: string }>()
@@ -80,7 +81,7 @@ export default function SensorDetailPage() {
             Temperatura
           </span>
           <p className={`text-xl font-semibold tabular-nums ${outOfRangeTemp ? "text-status-alert" : "text-foreground"}`}>
-            {sensor.temperature.toFixed(1)}°C
+            {formatTemperature(sensor.temperature)}
           </p>
         </Card>
         <Card className="gap-2 p-4">
@@ -89,12 +90,12 @@ export default function SensorDetailPage() {
             Humedad
           </span>
           <p className={`text-xl font-semibold tabular-nums ${outOfRangeHumidity ? "text-status-alert" : "text-foreground"}`}>
-            {sensor.humidity.toFixed(0)}%
+            {formatHumidity(sensor.humidity)}
           </p>
         </Card>
         <Card className="gap-2 p-4">
           <span className="text-xs text-muted-foreground">Batería</span>
-          <p className="text-xl font-semibold tabular-nums text-foreground">{sensor.battery}%</p>
+          <p className="text-xl font-semibold tabular-nums text-foreground">{formatBattery(sensor.battery)}</p>
         </Card>
         <Card className="gap-2 p-4">
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">

@@ -64,9 +64,11 @@ export interface Measurement {
 export interface Alert {
   id: string
   sensorId: string
+  devEui?: string | null
   type: AlertType
-  temperature: number
-  humidity: number
+  // Lecturas al abrirse la alerta; null = el sensor no informó ese valor.
+  temperature: number | null
+  humidity: number | null
   createdAt: string
   resolvedAt: string | null
   active: boolean
@@ -90,7 +92,10 @@ export interface CinemaSummary extends Cinema {
   sensorCount: number
   sensorsOnline: number
   sensorsOffline: number
+  /** Cantidad de alertas activas. */
   activeAlerts: number
+  /** Cantidad de sensores con al menos una alerta activa (backend nuevo). */
+  sensorsWithAlerts?: number
 }
 
 export interface DashboardSummary {
@@ -98,9 +103,14 @@ export interface DashboardSummary {
   sensorCount: number
   sensorsOnline: number
   sensorsOffline: number
+  // Campos del backend nuevo (opcionales mientras conviva con uno viejo)
+  activeAlerts?: number
+  sensorsWithAlerts?: number
+  /** @deprecated usar sensorsWithAlerts */
   sensorsAlert: number
-  avgTemperature: number
-  avgHumidity: number
+  // null = no hay sensores online con datos
+  avgTemperature: number | null
+  avgHumidity: number | null
 }
 
 export interface ApiSensor {

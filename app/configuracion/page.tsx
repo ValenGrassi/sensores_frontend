@@ -3,6 +3,7 @@
 import { SlidersHorizontal } from "lucide-react"
 import { useProfiles } from "@/lib/hooks"
 import { EditProfileDialog } from "@/components/edit-profile-dialog"
+import { AdminAccessCard } from "@/components/admin-access-card"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export default function ConfiguracionPage() {
@@ -16,6 +17,8 @@ export default function ConfiguracionPage() {
           Perfiles de sala: rangos de temperatura y humedad que disparan alertas.
         </p>
       </div>
+
+      <AdminAccessCard />
 
       {isLoading ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">

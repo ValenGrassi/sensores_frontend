@@ -28,7 +28,7 @@ export default function DashboardPage() {
             <MetricCard label="Sensores" value={summary.sensorCount} icon={Radio} />
             <MetricCard label="Online" value={summary.sensorsOnline} icon={Radio} tone="ok" />
             <MetricCard label="Sin comunicación" value={summary.sensorsOffline} icon={WifiOff} tone="attention" />
-            <MetricCard label="En alerta" value={summary.sensorsAlert} icon={AlertTriangle} tone="alert" />
+            <MetricCard label="En alerta" value={summary.sensorsWithAlerts ?? summary.sensorsAlert} icon={AlertTriangle} tone="alert" />
           </>
         )}
       </div>

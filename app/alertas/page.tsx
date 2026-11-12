@@ -12,6 +12,7 @@ import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from "@/
 import { formatDistanceToNow } from "date-fns"
 import { es } from "date-fns/locale"
 import { cn } from "@/lib/utils"
+import { formatHumidity, formatTemperature } from "@/lib/format"
 
 export default function AlertasPage() {
   const [tab, setTab] = React.useState<"active" | "history">("active")
@@ -80,14 +81,14 @@ export default function AlertasPage() {
                     </div>
                     {sensor && (
                       <Link
-                        href={`/sensores/${sensor.id}`}
+                        href={`/sensores/${sensor.devEui}`}
                         className="text-sm text-muted-foreground hover:text-foreground hover:underline"
                       >
                         {sensor.cinema.name} · {sensor.room.name} · {sensor.name}
                       </Link>
                     )}
                     <span className="text-xs text-muted-foreground">
-                      {alert.temperature.toFixed(1)}°C · {alert.humidity.toFixed(0)}% ·{" "}
+                      {formatTemperature(alert.temperature)} · {formatHumidity(alert.humidity)} ·{" "}
                       {formatDistanceToNow(new Date(alert.createdAt), { addSuffix: true, locale: es })}
                     </span>
                   </div>
@@ -95,7 +96,7 @@ export default function AlertasPage() {
 
                 {sensor && (
                   <Link
-                    href={`/sensores/${sensor.id}`}
+                    href={`/sensores/${sensor.devEui}`}
                     className="shrink-0 text-sm text-muted-foreground hover:text-foreground hover:underline sm:ml-4"
                   >
                     Ver sensor

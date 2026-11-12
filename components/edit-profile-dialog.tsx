@@ -16,7 +16,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog"
-import { api } from "@/lib/api"
+import { api, describeError } from "@/lib/api"
 import type { Profile } from "@/lib/types"
 
 export function EditProfileDialog({ profile }: { profile: Profile }) {
@@ -27,6 +27,7 @@ export function EditProfileDialog({ profile }: { profile: Profile }) {
   const [humMin, setHumMin] = useState(String(profile.humidityMin))
   const [humMax, setHumMax] = useState(String(profile.humidityMax))
   const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const invalidTemperature =
   Number(tempMax) < Number(tempMin)
 
@@ -35,6 +36,7 @@ const invalidHumidity =
 
   async function handleSubmit() {
     setSubmitting(true)
+    setError(null)
     try {
       await api.updateProfile(profile.id, {
         temperatureMin: Number(tempMin),
@@ -44,14 +46,24 @@ const invalidHumidity =
       })
       await mutate("/api/profiles")
       await mutate("/api/dashboard")
+      // cambiar umbrales reevalúa las alertas en el backend
+      await mutate((key) => typeof key === "string" && key.startsWith("/api/alerts"))
       setOpen(false)
+    } catch (err) {
+      setError(describeError(err))
     } finally {
       setSubmitting(false)
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next)
+        if (next) setError(null)
+      }}
+    >
       <DialogTrigger render={<Button size="sm" variant="outline" />}>
         <Pencil />
         Editar rangos
@@ -93,6 +105,11 @@ const invalidHumidity =
 />
           </div>
         </div>
+        {error && (
+          <p role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        )}
         <DialogFooter>
           <DialogClose render={<Button variant="outline" />}>Cancelar</DialogClose>
           <Button

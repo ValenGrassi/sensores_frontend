@@ -142,7 +142,7 @@ import * as React from "react"
 import { useSWRConfig } from "swr"
 import { Settings2, Lock } from "lucide-react"
 
-import { api } from "@/lib/api"
+import { api, describeError } from "@/lib/api"
 import { useCinemas, useRooms } from "@/lib/hooks"
 import type { SensorWithContext } from "@/lib/types"
 
@@ -182,6 +182,7 @@ export function EditSensorDialog({
   const [cinemaId, setCinemaId] = React.useState(sensor.cinema.id)
   const [roomId, setRoomId] = React.useState(sensor.room.id)
   const [submitting, setSubmitting] = React.useState(false)
+  const [error, setError] = React.useState<string | null>(null)
 
   const { data: cinemas } = useCinemas()
   const { data: rooms } = useRooms(cinemaId)
@@ -191,6 +192,7 @@ export function EditSensorDialog({
       setName(sensor.name)
       setCinemaId(sensor.cinema.id)
       setRoomId(sensor.room.id)
+      setError(null)
     }
   }, [open, sensor])
 
@@ -207,6 +209,7 @@ export function EditSensorDialog({
     }
 
     setSubmitting(true)
+    setError(null)
 
     try {
       await api.updateSensor(sensor.devEui, {
@@ -219,11 +222,14 @@ export function EditSensorDialog({
         mutate(`/api/sensors/${sensor.devEui}`),
         mutate("/api/dashboard"),
         mutate("/api/cinemas"),
+        // la sala nueva puede tener otro perfil: el backend reevalúa las alertas
+        mutate((key) => typeof key === "string" && key.startsWith("/api/alerts")),
       ])
 
       setOpen(false)
-    } catch (error) {
-      console.error("Error actualizando sensor:", error)
+    } catch (err) {
+      console.error("Error actualizando sensor:", err)
+      setError(describeError(err))
     } finally {
       setSubmitting(false)
     }
@@ -355,6 +361,12 @@ export function EditSensorDialog({
               className="font-mono opacity-60"
             />
           </div>
+
+          {error && (
+            <p role="alert" className="text-sm text-destructive">
+              {error}
+            </p>
+          )}
 
           <DialogFooter>
             <DialogClose

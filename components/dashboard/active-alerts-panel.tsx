@@ -9,6 +9,7 @@ import { Empty, EmptyDescription, EmptyMedia, EmptyTitle } from "@/components/ui
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle2 } from "lucide-react"
+import { formatHumidity, formatTemperature } from "@/lib/format"
 
 const typeIcon = { temperature_high: Thermometer, temperature_low: Thermometer, humidity_high: Droplets, humidity_low: Droplets }
 const typeLabel = {
@@ -66,7 +67,7 @@ export function ActiveAlertsPanel() {
             </div>
             <div className="flex shrink-0 flex-col items-end gap-1">
               <Badge variant="destructive">
-                {alert.temperature.toFixed(1)}°C · {alert.humidity.toFixed(0)}%
+                {formatTemperature(alert.temperature)} · {formatHumidity(alert.humidity)}
               </Badge>
               <span className="text-xs text-muted-foreground">
                 {formatDistanceToNow(new Date(alert.createdAt), { addSuffix: true, locale: es })}

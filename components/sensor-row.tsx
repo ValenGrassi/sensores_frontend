@@ -4,6 +4,7 @@ import type { SensorWithContext } from "@/lib/types"
 import { SensorStatusIndicator } from "@/components/status-indicator"
 import { BatteryIndicator } from "@/components/battery-indicator"
 import { cn } from "@/lib/utils"
+import { formatBattery, formatHumidity, formatTemperature } from "@/lib/format"
 
 export function SensorRow({ sensor, showContext = false }: { sensor: SensorWithContext; showContext?: boolean }) {
   const outOfRange =
@@ -34,7 +35,7 @@ export function SensorRow({ sensor, showContext = false }: { sensor: SensorWithC
           )}
         >
           <BatteryIcon className="size-4 text-muted-foreground" />
-          {sensor.battery}%
+          {formatBattery(sensor.battery)}
         </span>
         <span
           className={cn(
@@ -43,7 +44,7 @@ export function SensorRow({ sensor, showContext = false }: { sensor: SensorWithC
           )}
         >
           <Thermometer className="size-4 text-muted-foreground" />
-          {sensor.temperature.toFixed(1)}°C
+          {formatTemperature(sensor.temperature)}
         </span>
         <span
           className={cn(
@@ -52,7 +53,7 @@ export function SensorRow({ sensor, showContext = false }: { sensor: SensorWithC
           )}
         >
           <Droplets className="size-4 text-muted-foreground" />
-          {sensor.humidity.toFixed(0)}%
+          {formatHumidity(sensor.humidity)}
         </span>
         {/* <BatteryIndicator percent={sensor.battery} /> */}
       </div>
