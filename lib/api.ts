@@ -14,18 +14,32 @@ export class ApiError extends Error {
   status: number
   code: string
   details?: { field: string; message: string }[]
+  /** Solo en 429: segundos a esperar antes de reintentar. */
+  retryAfterSeconds?: number
 
-  constructor(status: number, code: string, message: string, details?: { field: string; message: string }[]) {
+  constructor(
+    status: number,
+    code: string,
+    message: string,
+    details?: { field: string; message: string }[],
+    retryAfterSeconds?: number,
+  ) {
     super(message)
     this.name = "ApiError"
     this.status = status
     this.code = code
     this.details = details
+    this.retryAfterSeconds = retryAfterSeconds
   }
 
   /** true si el problema es la clave (falta, es inválida o no tiene permiso). */
   get isAuthError() {
     return this.status === 401 || this.status === 403
+  }
+
+  /** true si se superó un límite de pedidos (el mensaje ya dice cuánto esperar). */
+  get isRateLimited() {
+    return this.status === 429
   }
 }
 
@@ -59,7 +73,8 @@ async function toApiError(res: Response): Promise<ApiError> {
 
   // Formato actual: { error: { code, message, details } }. Formato viejo: { error: "mensaje" }.
   if (error && typeof error === "object") {
-    return new ApiError(res.status, error.code ?? "UNKNOWN", error.message ?? `Error ${res.status}`, error.details)
+    const retryAfter = error.retryAfterSeconds ?? (Number(res.headers.get("Retry-After")) || undefined)
+    return new ApiError(res.status, error.code ?? "UNKNOWN", error.message ?? `Error ${res.status}`, error.details, retryAfter)
   }
   return new ApiError(res.status, "UNKNOWN", typeof error === "string" ? error : `Error ${res.status}`)
 }
@@ -100,6 +115,10 @@ export interface MeResponse {
   authenticated: boolean
   client: { id: string; name: string; type: "admin" | "client" } | null
   permissions: string[]
+  /** IP con la que te ve el backend (backend nuevo). */
+  ip?: string
+  /** Estado de tus límites de pedidos (backend nuevo). */
+  rateLimit?: { enabled: boolean; tier?: "anonymous" | "client" | "admin"; unlimited?: boolean }
 }
 
 export const api = {
@@ -111,12 +130,21 @@ export const api = {
   getSensor: (id: string) => request(`/api/sensors/${id}`),
   updateSensor: (devEui: string, patch: Record<string, unknown>) =>
     request(`/api/sensors/${devEui}`, { method: "PATCH", body: JSON.stringify(patch) }),
-  getSensorMeasurements: (id: string, params?: { preset?: string; from?: string; to?: string }) =>
+  getSensorMeasurements: (
+    id: string,
+    params?: { preset?: string; resolution?: "auto" | "raw" | "hour" | "day"; from?: string; to?: string },
+  ) =>
     request(`/api/sensors/${id}/measurements${toQuery(params)}`),
   getMeasurements: (params?: Record<string, string | number | undefined>) =>
     request(`/api/measurements${toQuery(params)}`),
-  getAlerts: (params?: { active?: boolean }) =>
-    request(`/api/alerts${toQuery(params ? { active: String(params.active) } : undefined)}`),
+  getAlerts: (params?: { active?: boolean; limit?: number; cursor?: string }) =>
+    request(
+      `/api/alerts${toQuery({
+        active: params?.active === undefined ? undefined : String(params.active),
+        limit: params?.limit,
+        cursor: params?.cursor,
+      })}`,
+    ),
   getRooms: (params?: { cinemaId?: string }) => request(`/api/rooms${toQuery(params)}`),
   getProfiles: () => request("/api/profiles"),
 

@@ -3,11 +3,12 @@
 import * as React from "react"
 import Link from "next/link"
 import { AlertTriangle, Thermometer, Droplets } from "lucide-react"
-import { useAlerts, useSensors } from "@/lib/hooks"
+import { useAlertHistory, useAlerts, useSensors } from "@/lib/hooks"
 import { alertTypeLabel } from "@/lib/alert-labels"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from "@/components/ui/empty"
 import { formatDistanceToNow } from "date-fns"
 import { es } from "date-fns/locale"
@@ -16,7 +17,9 @@ import { formatHumidity, formatTemperature } from "@/lib/format"
 
 export default function AlertasPage() {
   const [tab, setTab] = React.useState<"active" | "history">("active")
-  const { data: alerts, isLoading } = useAlerts(tab === "active" ? true : undefined)
+  // Activas: pocas, se actualizan solas. Historial: de a páginas, sin actualización periódica.
+  const active = useAlerts(true)
+  const history = useAlertHistory(tab === "history")
   const { data: sensors } = useSensors()
 
   const sensorMap = React.useMemo(() => {
@@ -24,7 +27,8 @@ export default function AlertasPage() {
     return map
   }, [sensors])
 
-  const rows = tab === "history" ? alerts?.filter((a) => !a.active) : alerts
+  const rows = tab === "history" ? history.alerts : active.data
+  const isLoading = tab === "history" ? history.isLoading : active.isLoading
 
   return (
     <div className="flex flex-col gap-6">
@@ -105,6 +109,16 @@ export default function AlertasPage() {
               </div>
             )
           })}
+          {tab === "history" && history.hasMore && (
+            <Button
+              variant="outline"
+              className="self-center"
+              onClick={() => history.loadMore()}
+              disabled={history.isLoadingMore}
+            >
+              {history.isLoadingMore ? "Cargando…" : "Cargar más"}
+            </Button>
+          )}
         </div>
       ) : (
         <Empty>

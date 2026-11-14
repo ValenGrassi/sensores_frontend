@@ -1,6 +1,7 @@
 "use client"
 
 import useSWR from "swr"
+import useSWRInfinite from "swr/infinite"
 import { fetcher } from "@/lib/api"
 import type {
   Alert,
@@ -14,10 +15,13 @@ import type {
 } from "@/lib/types"
 import type { MeasurementRow } from "@/lib/server/store"
 
-// Live-ish sections poll on an interval so the UI reflects new
-// measurements without the user needing to refresh — this mirrors how the
-// app will behave once it's wired to real LoRaWAN telemetry.
-const LIVE_REFRESH_MS = 30000
+// Las secciones "en vivo" se actualizan solas cada minuto. Los sensores
+// reportan cada ~5 minutos, así que consultar más seguido solo gasta
+// ancho de banda y cupo de pedidos del backend sin mostrar nada nuevo.
+const LIVE_REFRESH_MS = 60000
+
+/** Alertas por página en el historial ("Cargar más" pide la siguiente). */
+const ALERT_HISTORY_PAGE_SIZE = 100
 
 function toQuery(params?: Record<string, string | number | boolean | undefined>) {
   if (!params) return ""
@@ -95,9 +99,37 @@ export function useMeasurements(params: {
   return useSWR<{ rows: MeasurementRow[]; total: number; page: number; pageSize: number }>(key, fetcher)
 }
 
+/** Alertas activas (o todas): pocas, se actualizan cada minuto. */
 export function useAlerts(active?: boolean) {
   const key = `/api/alerts${toQuery(active !== undefined ? { active: String(active) } : undefined)}`
   return useSWR<Alert[]>(key, fetcher, { refreshInterval: LIVE_REFRESH_MS })
+}
+
+/**
+ * Historial de alertas resueltas, de a páginas (cursor = id de la última recibida).
+ * No se actualiza solo: el backend lo cuenta como consulta pesada.
+ */
+export function useAlertHistory(enabled: boolean) {
+  const getKey = (index: number, previous: Alert[] | null) => {
+    if (!enabled) return null
+    if (previous && previous.length < ALERT_HISTORY_PAGE_SIZE) return null
+    const cursor = previous?.[previous.length - 1]?.id
+    return `/api/alerts${toQuery({ active: "false", limit: ALERT_HISTORY_PAGE_SIZE, cursor })}`
+  }
+
+  const { data, error, size, setSize, isLoading, isValidating } = useSWRInfinite<Alert[]>(getKey, fetcher, {
+    revalidateFirstPage: false,
+  })
+
+  const lastPage = data?.[data.length - 1]
+  return {
+    alerts: data?.flat(),
+    error,
+    isLoading,
+    isLoadingMore: isValidating && size > (data?.length ?? 0),
+    hasMore: lastPage !== undefined && lastPage.length === ALERT_HISTORY_PAGE_SIZE,
+    loadMore: () => setSize(size + 1),
+  }
 }
 
 export function useProfiles() {

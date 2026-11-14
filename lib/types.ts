@@ -52,13 +52,19 @@ export interface Sensor {
   reportingIntervalMinutes: number
 }
 
+/**
+ * Punto del historial de un sensor. En rangos largos el backend devuelve
+ * promedios por hora o por día: esos puntos no tienen `id` y traen `samples`
+ * (cuántas lecturas se promediaron); `timestamp` es el inicio del intervalo.
+ */
 export interface Measurement {
-  id: string
+  id?: string
   sensorId: string
   timestamp: string // ISO timestamp
   temperature: number
   humidity: number
   battery: number
+  samples?: number
 }
 
 export interface Alert {

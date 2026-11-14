@@ -12,7 +12,7 @@ import { EditSensorDialog } from "@/components/edit-sensor-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from "@/components/ui/empty"
-import type { DateRangePreset } from "@/lib/types"
+import type { DateRangePreset, Measurement } from "@/lib/types"
 import { formatDistanceToNow } from "date-fns"
 import { es } from "date-fns/locale"
 import { formatBattery, formatHumidity, formatTemperature } from "@/lib/format"
@@ -22,6 +22,7 @@ export default function SensorDetailPage() {
   const { data: sensor, isLoading } = useSensor(params.devEui)
   const [preset, setPreset] = React.useState<DateRangePreset>("24h")
   const { data: measurements, isLoading: measurementsLoading } = useSensorMeasurements(params.devEui, preset)
+  const resolutionLabel = describeResolution(measurements)
 
   if (isLoading) {
     return (
@@ -132,7 +133,10 @@ export default function SensorDetailPage() {
       </Card>
 
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-medium text-foreground">Historial de mediciones</h2>
+        <div className="flex flex-col">
+          <h2 className="text-sm font-medium text-foreground">Historial de mediciones</h2>
+          {resolutionLabel && <span className="text-xs text-muted-foreground">{resolutionLabel}</span>}
+        </div>
         <DateRangeSelect value={preset} onChange={setPreset} />
       </div>
 
@@ -180,4 +184,12 @@ export default function SensorDetailPage() {
       )}
     </div>
   )
+}
+
+/** En rangos largos el backend devuelve promedios: se aclara debajo del título. */
+function describeResolution(measurements: Measurement[] | undefined): string | null {
+  if (!measurements || measurements.length === 0 || measurements[0].samples === undefined) return null
+  if (measurements.length < 2) return "Promedios"
+  const stepMs = new Date(measurements[1].timestamp).getTime() - new Date(measurements[0].timestamp).getTime()
+  return stepMs >= 20 * 60 * 60 * 1000 ? "Promedio por día" : "Promedio por hora"
 }
