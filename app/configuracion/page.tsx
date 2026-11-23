@@ -1,13 +1,24 @@
 "use client"
 
 import { SlidersHorizontal } from "lucide-react"
-import { useProfiles } from "@/lib/hooks"
+import { useAccess, useProfiles, useRefresh } from "@/lib/hooks"
+import { api } from "@/lib/api"
 import { EditProfileDialog } from "@/components/edit-profile-dialog"
+import { NewProfileDialog } from "@/components/new-profile-dialog"
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button"
 import { AdminAccessCard } from "@/components/admin-access-card"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export default function ConfiguracionPage() {
   const { data: profiles, isLoading } = useProfiles()
+  const { can } = useAccess()
+  const refresh = useRefresh()
+  const canEditProfiles = can("profiles:write")
+
+  async function deleteProfile(id: string) {
+    await api.deleteProfile(id)
+    await refresh("/api/profiles")
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -19,6 +30,12 @@ export default function ConfiguracionPage() {
       </div>
 
       <AdminAccessCard />
+
+      {canEditProfiles && (
+        <div className="flex justify-end">
+          <NewProfileDialog />
+        </div>
+      )}
 
       {isLoading ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -59,9 +76,16 @@ export default function ConfiguracionPage() {
                 </div>
               </div>
 
-              <div className="flex justify-end">
-                <EditProfileDialog profile={profile} />
-              </div>
+              {canEditProfiles && (
+                <div className="flex justify-end gap-1">
+                  <ConfirmDeleteButton
+                    title={`Eliminar el perfil ${profile.name}`}
+                    description="Solo se puede si ninguna sala lo usa."
+                    onConfirm={() => deleteProfile(profile.id)}
+                  />
+                  <EditProfileDialog profile={profile} />
+                </div>
+              )}
             </div>
           ))}
         </div>

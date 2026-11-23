@@ -2,20 +2,25 @@
 
 import Link from "next/link"
 import { ChevronRight, MapPin } from "lucide-react"
-import { useCinemas } from "@/lib/hooks"
+import { useAccess, useCinemas } from "@/lib/hooks"
 import { CinemaStatusIndicator } from "@/components/status-indicator"
+import { CinemaDialog } from "@/components/cinema-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export default function CinesPage() {
   const { data: cinemas, isLoading } = useCinemas()
+  const { isAdmin } = useAccess()
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-foreground">Cines</h1>
-        <p className="text-sm text-muted-foreground">
-          Listado de todas las salas monitoreadas de la cadena.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground">Cines</h1>
+          <p className="text-sm text-muted-foreground">
+            Listado de todas las salas monitoreadas de la cadena.
+          </p>
+        </div>
+        {isAdmin && <CinemaDialog />}
       </div>
 
       {isLoading ? (

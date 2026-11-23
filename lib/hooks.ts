@@ -1,8 +1,9 @@
 "use client"
 
-import useSWR from "swr"
+import * as React from "react"
+import useSWR, { useSWRConfig } from "swr"
 import useSWRInfinite from "swr/infinite"
-import { fetcher } from "@/lib/api"
+import { API_KEY_CHANGED_EVENT, api, fetcher, getApiKey } from "@/lib/api"
 import type {
   Alert,
   CinemaSummary,
@@ -134,3 +135,43 @@ export function useRooms(cinemaId?: string) {
 }
 
 
+
+/**
+ * Qué puede hacer la clave guardada en este navegador (Configuración > Acceso
+ * de administrador). Sin clave, o mientras se verifica, no puede nada: los
+ * botones de edición se ocultan y la app queda en modo lectura.
+ */
+export function useAccess() {
+  const [key, setKey] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    const read = () => setKey(getApiKey())
+    read()
+    window.addEventListener(API_KEY_CHANGED_EVENT, read)
+    window.addEventListener("storage", read) // otra pestaña cambió la clave
+    return () => {
+      window.removeEventListener(API_KEY_CHANGED_EVENT, read)
+      window.removeEventListener("storage", read)
+    }
+  }, [])
+
+  const { data: me } = useSWR(key ? ["/api/me", key] : null, ([, apiKey]: [string, string]) => api.getMe(apiKey))
+
+  const isAdmin = me?.client?.type === "admin"
+  return {
+    /** Cines y salas: solo la clave de administrador. */
+    isAdmin,
+    /** Permisos de escritura: "sensors:write", "profiles:write". */
+    can: (permission: string) => isAdmin || Boolean(me?.permissions.includes(permission)),
+  }
+}
+
+/** Vuelve a pedir todo lo que empiece con alguno de estos paths (después de editar algo). */
+export function useRefresh() {
+  const { mutate } = useSWRConfig()
+  return React.useCallback(
+    (...prefixes: string[]) =>
+      mutate((key) => typeof key === "string" && prefixes.some((prefix) => key.startsWith(prefix))),
+    [mutate],
+  )
+}

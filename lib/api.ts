@@ -51,12 +51,16 @@ export function getApiKey(): string | null {
   }
 }
 
+/** Evento que avisa a la página que la clave guardada cambió (ver useAccess). */
+export const API_KEY_CHANGED_EVENT = "sensores:api-key-changed"
+
 export function setApiKey(key: string) {
   try {
     window.localStorage.setItem(API_KEY_STORAGE, key)
   } catch {
     // almacenamiento bloqueado: la clave dura solo esta pestaña
   }
+  window.dispatchEvent(new Event(API_KEY_CHANGED_EVENT))
 }
 
 export function clearApiKey() {
@@ -65,6 +69,7 @@ export function clearApiKey() {
   } catch {
     // nada que limpiar
   }
+  window.dispatchEvent(new Event(API_KEY_CHANGED_EVENT))
 }
 
 async function toApiError(res: Response): Promise<ApiError> {
@@ -183,6 +188,19 @@ export const api = {
     request(`/api/profiles/${id}`, {
       method: "DELETE",
     }),
+
+  // Cines y salas: solo con la clave de administrador.
+  createCinema: (data: { name: string; address: string }) =>
+    request("/api/cinemas", { method: "POST", body: JSON.stringify(data) }),
+  updateCinema: (id: string, patch: { name?: string; address?: string }) =>
+    request(`/api/cinemas/${id}`, { method: "PATCH", body: JSON.stringify(patch) }),
+  deleteCinema: (id: string) => request(`/api/cinemas/${id}`, { method: "DELETE" }),
+
+  createRoom: (data: { cinemaId: string; name: string; type: string; profileId: string }) =>
+    request("/api/rooms", { method: "POST", body: JSON.stringify(data) }),
+  updateRoom: (id: string, patch: { name?: string; type?: string; profileId?: string }) =>
+    request(`/api/rooms/${id}`, { method: "PATCH", body: JSON.stringify(patch) }),
+  deleteRoom: (id: string) => request(`/api/rooms/${id}`, { method: "DELETE" }),
 
   /** Verifica una clave sin guardarla (o la guardada, si no se pasa ninguna). */
   getMe: (apiKey?: string) => request<MeResponse>("/api/me", { apiKey: apiKey ?? getApiKey() }),

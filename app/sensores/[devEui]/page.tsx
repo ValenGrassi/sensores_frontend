@@ -4,7 +4,7 @@ import * as React from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, Thermometer, Droplets, Radio, Clock } from "lucide-react"
-import { useSensor, useSensorMeasurements } from "@/lib/hooks"
+import { useAccess, useSensor, useSensorMeasurements } from "@/lib/hooks"
 import { SensorStatusIndicator } from "@/components/status-indicator"
 import { DateRangeSelect } from "@/components/date-range-select"
 import { SensorChart } from "@/components/sensor-chart"
@@ -20,6 +20,7 @@ import { formatBattery, formatHumidity, formatTemperature, isOutOfRange, sensorL
 export default function SensorDetailPage() {
   const params = useParams<{ devEui: string }>()
   const { data: sensor, isLoading } = useSensor(params.devEui)
+  const { can } = useAccess()
   const [preset, setPreset] = React.useState<DateRangePreset>("24h")
   const { data: measurements, isLoading: measurementsLoading } = useSensorMeasurements(params.devEui, preset)
   const resolutionLabel = describeResolution(measurements)
@@ -71,7 +72,7 @@ export default function SensorDetailPage() {
           </div>
           <div className="flex shrink-0 items-center gap-3">
             <SensorStatusIndicator status={sensor.status} />
-            <EditSensorDialog sensor={sensor} />
+            {can("sensors:write") && <EditSensorDialog sensor={sensor} />}
           </div>
         </div>
       </div>
@@ -136,7 +137,7 @@ export default function SensorDetailPage() {
               </span>
             </>
           ) : (
-            <span>Sin sala asignada: no se monitorea. Asignale una sala con Configurar.</span>
+            <span>Sin sala asignada: no se monitorea. Asignale una sala con Configurar (necesita tu clave de administrador).</span>
           )}
         </CardContent>
       </Card>

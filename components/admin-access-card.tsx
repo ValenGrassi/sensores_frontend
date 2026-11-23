@@ -87,8 +87,8 @@ export function AdminAccessCard() {
         <div className="flex flex-col gap-0.5">
           <p className="font-medium leading-tight">Acceso de administrador</p>
           <p className="text-xs text-muted-foreground">
-            Ver datos no requiere clave. Para editar perfiles y sensores, pegá tu clave de API. Se guarda solo en este
-            navegador.
+            Ver datos no requiere clave. Para administrar cines, salas, perfiles y sensores, pegá tu clave de API. Se
+            guarda solo en este navegador; sin ella, los botones de edición no aparecen.
           </p>
         </div>
       </div>

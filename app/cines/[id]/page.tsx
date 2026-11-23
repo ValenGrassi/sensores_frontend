@@ -1,11 +1,15 @@
 "use client"
 
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, MapPin } from "lucide-react"
-import { useCinema } from "@/lib/hooks"
+import { useAccess, useCinema, useProfiles, useRefresh } from "@/lib/hooks"
+import { api } from "@/lib/api"
 import { CinemaStatusIndicator } from "@/components/status-indicator"
 import { SensorRow } from "@/components/sensor-row"
+import { CinemaDialog } from "@/components/cinema-dialog"
+import { RoomDialog } from "@/components/room-dialog"
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button"
 import { roomTypeLabel } from "@/lib/room-labels"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
@@ -19,7 +23,22 @@ import { Building2 } from "lucide-react"
 
 export default function CineDetailPage() {
   const params = useParams<{ id: string }>()
+  const router = useRouter()
   const { data: cinema, isLoading } = useCinema(params.id)
+  const { data: profiles } = useProfiles()
+  const { isAdmin } = useAccess()
+  const refresh = useRefresh()
+
+  async function deleteCinema() {
+    await api.deleteCinema(params.id)
+    await refresh("/api/cinemas", "/api/dashboard", "/api/stats")
+    router.push("/cines")
+  }
+
+  async function deleteRoom(roomId: string) {
+    await api.deleteRoom(roomId)
+    await refresh("/api/cinemas", "/api/rooms")
+  }
 
   if (isLoading) {
     return (
@@ -63,7 +82,19 @@ export default function CineDetailPage() {
               {cinema.address}
             </span>
           </div>
-          <CinemaStatusIndicator status={cinema.status} />
+          <div className="flex flex-wrap items-center gap-2">
+            <CinemaStatusIndicator status={cinema.status} />
+            {isAdmin && (
+              <>
+                <CinemaDialog cinema={cinema} />
+                <ConfirmDeleteButton
+                  title={`Eliminar ${cinema.name}`}
+                  description="Se elimina el cine. Solo se puede si no tiene salas."
+                  onConfirm={deleteCinema}
+                />
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -87,13 +118,35 @@ export default function CineDetailPage() {
       </div>
 
       <div className="flex flex-col gap-5">
-        <h2 className="text-sm font-medium text-foreground">Salas y sensores</h2>
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-sm font-medium text-foreground">Salas y sensores</h2>
+          {isAdmin && <RoomDialog cinemaId={cinema.id} />}
+        </div>
+        {cinema.rooms.length === 0 && (
+          <p className="text-sm text-muted-foreground">Este cine todavía no tiene salas.</p>
+        )}
         {cinema.rooms.map((room) => (
           <div key={room.id} className="flex flex-col gap-2">
-            <div className="flex items-baseline gap-2">
-              <span className="text-sm font-medium text-foreground">{room.name}</span>
-              <span className="text-xs text-muted-foreground">{roomTypeLabel(room.type as any)}</span>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-baseline gap-2">
+                <span className="text-sm font-medium text-foreground">{room.name}</span>
+                <span className="text-xs text-muted-foreground">
+                  {roomTypeLabel(room.type as any)}
+                  {profiles && ` · Perfil: ${profiles.find((p) => p.id === room.profileId)?.name ?? "—"}`}
+                </span>
+              </div>
+              {isAdmin && (
+                <div className="flex items-center gap-1">
+                  <RoomDialog cinemaId={cinema.id} room={room} />
+                  <ConfirmDeleteButton
+                    title={`Eliminar ${room.name}`}
+                    description="Se elimina la sala. Solo se puede si no tiene sensores."
+                    onConfirm={() => deleteRoom(room.id)}
+                  />
+                </div>
+              )}
             </div>
+            {room.sensors.length === 0 && <p className="text-xs text-muted-foreground">Sin sensores.</p>}
             <div className="flex flex-col gap-2">
               {room.sensors.map((sensor) => (
                 <SensorRow key={sensor.id} sensor={sensor} />
