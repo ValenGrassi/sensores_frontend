@@ -220,7 +220,7 @@ export function listMeasurementRows(params: {
         cinemaName: cinema.name,
         roomId: room.id,
         roomName: room.name,
-        sensorName: sensor.name,
+        sensorName: sensor.name ?? sensor.devEui,
         status,
       })
     }

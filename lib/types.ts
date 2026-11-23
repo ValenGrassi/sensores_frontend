@@ -41,7 +41,8 @@ export interface Room {
 export interface Sensor {
   id: string
   roomId: string
-  name: string
+  /** null si se registró sin nombre (npm run sensors -- add <devEui>). */
+  name: string | null
   devEui: string
   profileId: string
   status: SensorStatus
@@ -83,10 +84,11 @@ export interface Alert {
 // Denormalized shapes used by the UI for convenience. The service layer
 // enriches raw entities with these when needed.
 
+/** Un sensor recién registrado todavía no tiene sala: room, cinema y profile vienen en null. */
 export interface SensorWithContext extends Sensor {
-  room: Room
-  cinema: Cinema
-  profile: Profile
+  room: Room | null
+  cinema: Cinema | null
+  profile: Profile | null
 }
 
 export interface RoomWithSensors extends Room {

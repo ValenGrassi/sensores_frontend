@@ -15,7 +15,7 @@ import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from "@/
 import type { DateRangePreset, Measurement } from "@/lib/types"
 import { formatDistanceToNow } from "date-fns"
 import { es } from "date-fns/locale"
-import { formatBattery, formatHumidity, formatTemperature } from "@/lib/format"
+import { formatBattery, formatHumidity, formatTemperature, isOutOfRange, sensorLabel, sensorPlace } from "@/lib/format"
 
 export default function SensorDetailPage() {
   const params = useParams<{ devEui: string }>()
@@ -48,8 +48,9 @@ export default function SensorDetailPage() {
     )
   }
 
-  const outOfRangeTemp = sensor.temperature < sensor.profile.temperatureMin || sensor.temperature > sensor.profile.temperatureMax
-  const outOfRangeHumidity = sensor.humidity < sensor.profile.humidityMin || sensor.humidity > sensor.profile.humidityMax
+  const profile = sensor.profile
+  const outOfRangeTemp = isOutOfRange(sensor.temperature, profile?.temperatureMin, profile?.temperatureMax)
+  const outOfRangeHumidity = isOutOfRange(sensor.humidity, profile?.humidityMin, profile?.humidityMax)
 
   return (
     <div className="flex flex-col gap-6">
@@ -63,9 +64,9 @@ export default function SensorDetailPage() {
         </Link>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex flex-col gap-1">
-            <h1 className="text-2xl font-semibold text-foreground">{sensor.name}</h1>
+            <h1 className="text-2xl font-semibold text-foreground">{sensorLabel(sensor)}</h1>
             <span className="text-sm text-muted-foreground">
-              {sensor.cinema.name} · {sensor.room.name} · {sensor.devEui}
+              {sensorPlace(sensor)} · {sensor.devEui}
             </span>
           </div>
           <div className="flex shrink-0 items-center gap-3">
@@ -104,7 +105,9 @@ export default function SensorDetailPage() {
             Último reporte
           </span>
           <p className="text-sm font-medium text-foreground">
-            {formatDistanceToNow(new Date(sensor.lastSeen), { addSuffix: true, locale: es })}
+            {sensor.lastSeen
+              ? formatDistanceToNow(new Date(sensor.lastSeen), { addSuffix: true, locale: es })
+              : "Todavía no reportó"}
           </p>
         </Card>
       </div>
@@ -114,21 +117,27 @@ export default function SensorDetailPage() {
           <CardTitle>Rango normal del perfil</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-6 text-sm text-muted-foreground">
-          <span>
-            Perfil: <span className="font-medium text-foreground">{sensor.profile.name}</span>
-          </span>
-          <span>
-            Temperatura:{" "}
-            <span className="font-medium text-foreground">
-              {sensor.profile.temperatureMin}°C – {sensor.profile.temperatureMax}°C
-            </span>
-          </span>
-          <span>
-            Humedad:{" "}
-            <span className="font-medium text-foreground">
-              {sensor.profile.humidityMin}% – {sensor.profile.humidityMax}%
-            </span>
-          </span>
+          {profile ? (
+            <>
+              <span>
+                Perfil: <span className="font-medium text-foreground">{profile.name}</span>
+              </span>
+              <span>
+                Temperatura:{" "}
+                <span className="font-medium text-foreground">
+                  {profile.temperatureMin}°C – {profile.temperatureMax}°C
+                </span>
+              </span>
+              <span>
+                Humedad:{" "}
+                <span className="font-medium text-foreground">
+                  {profile.humidityMin}% – {profile.humidityMax}%
+                </span>
+              </span>
+            </>
+          ) : (
+            <span>Sin sala asignada: no se monitorea. Asignale una sala con Configurar.</span>
+          )}
         </CardContent>
       </Card>
 
@@ -152,8 +161,8 @@ export default function SensorDetailPage() {
               <SensorChart
                 measurements={measurements}
                 metric="temperature"
-                min={sensor.profile.temperatureMin}
-                max={sensor.profile.temperatureMax}
+                min={profile?.temperatureMin}
+                max={profile?.temperatureMax}
               />
             </CardContent>
           </Card>
@@ -165,8 +174,8 @@ export default function SensorDetailPage() {
               <SensorChart
                 measurements={measurements}
                 metric="humidity"
-                min={sensor.profile.humidityMin}
-                max={sensor.profile.humidityMax}
+                min={profile?.humidityMin}
+                max={profile?.humidityMax}
               />
             </CardContent>
           </Card>

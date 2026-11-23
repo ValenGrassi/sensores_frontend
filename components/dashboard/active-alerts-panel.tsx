@@ -9,7 +9,7 @@ import { Empty, EmptyDescription, EmptyMedia, EmptyTitle } from "@/components/ui
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle2 } from "lucide-react"
-import { formatHumidity, formatTemperature } from "@/lib/format"
+import { formatHumidity, formatTemperature, sensorPlace } from "@/lib/format"
 
 const typeIcon = { temperature_high: Thermometer, temperature_low: Thermometer, humidity_high: Droplets, humidity_low: Droplets }
 const typeLabel = {
@@ -61,7 +61,7 @@ export function ActiveAlertsPanel() {
             </div>
             <div className="flex min-w-0 flex-1 flex-col">
               <span className="truncate text-sm font-medium text-foreground">
-                {sensor ? `${sensor.cinema.name} · ${sensor.room.name}` : "Sensor desconocido"}
+                {sensor ? sensorPlace(sensor) : "Sensor desconocido"}
               </span>
               <span className="truncate text-xs text-muted-foreground">{typeLabel[alert.type]}</span>
             </div>

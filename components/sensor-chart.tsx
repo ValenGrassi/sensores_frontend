@@ -19,8 +19,9 @@ export function SensorChart({
 }: {
   measurements: Measurement[]
   metric: "temperature" | "humidity"
-  min: number
-  max: number
+  /** Rango normal del perfil; sin sala asignada no hay rango y no se dibuja. */
+  min?: number
+  max?: number
 }) {
   const points = measurements.map((m) => ({
     timestamp: m.timestamp,
@@ -72,7 +73,9 @@ export function SensorChart({
           </linearGradient>
         </defs>
         <CartesianGrid vertical={false} strokeDasharray="3 3" />
-        <ReferenceArea y1={min} y2={max} fill="var(--color-status-ok)" fillOpacity={0.06} strokeOpacity={0} />
+        {min !== undefined && max !== undefined && (
+          <ReferenceArea y1={min} y2={max} fill="var(--color-status-ok)" fillOpacity={0.06} strokeOpacity={0} />
+        )}
         <XAxis
           dataKey="timestamp"
           tickLine={false}

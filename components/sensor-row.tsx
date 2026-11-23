@@ -4,14 +4,13 @@ import type { SensorWithContext } from "@/lib/types"
 import { SensorStatusIndicator } from "@/components/status-indicator"
 import { BatteryIndicator } from "@/components/battery-indicator"
 import { cn } from "@/lib/utils"
-import { formatBattery, formatHumidity, formatTemperature } from "@/lib/format"
+import { formatBattery, formatHumidity, formatTemperature, isOutOfRange, sensorLabel, sensorPlace } from "@/lib/format"
 
 export function SensorRow({ sensor, showContext = false }: { sensor: SensorWithContext; showContext?: boolean }) {
+  const profile = sensor.profile
   const outOfRange =
-    sensor.temperature < sensor.profile.temperatureMin ||
-    sensor.temperature > sensor.profile.temperatureMax ||
-    sensor.humidity < sensor.profile.humidityMin ||
-    sensor.humidity > sensor.profile.humidityMax
+    isOutOfRange(sensor.temperature, profile?.temperatureMin, profile?.temperatureMax) ||
+    isOutOfRange(sensor.humidity, profile?.humidityMin, profile?.humidityMax)
 
   return (
     <Link
@@ -19,11 +18,9 @@ export function SensorRow({ sensor, showContext = false }: { sensor: SensorWithC
       className="flex items-center justify-between gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:bg-accent/50"
     >
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="truncate text-sm font-medium text-foreground">{sensor.name}</span>
+        <span className="truncate text-sm font-medium text-foreground">{sensorLabel(sensor)}</span>
         <span className="truncate text-xs text-muted-foreground">
-          {showContext
-            ? `${sensor.cinema.name} · ${sensor.room.name} · ${sensor.devEui}`
-            : sensor.devEui}
+          {showContext || !sensor.room ? `${sensorPlace(sensor)} · ${sensor.devEui}` : sensor.devEui}
         </span>
       </div>
 

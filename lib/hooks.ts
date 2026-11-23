@@ -49,18 +49,10 @@ export function useCinema(id: string | undefined) {
   return useSWR<CinemaDetail>(id ? `/api/cinemas/${id}` : null, fetcher, { refreshInterval: LIVE_REFRESH_MS })
 }
 
-// export function useSensors(filters?: { cinemaId?: string; roomId?: string; status?: string }) {
-//   const key = `/api/sensors${toQuery(filters)}`
-//   return useSWR<SensorWithContext[]>(key, fetcher, { refreshInterval: LIVE_REFRESH_MS })
-// }
-export function useSensors() {
-  return useSWR<SensorWithContext[]>(
-    "/api/sensors",
-    fetcher,
-    {
-      refreshInterval: LIVE_REFRESH_MS,
-    }
-  )
+/** Sensores, con filtros opcionales que aplica el backend (sin filtros: todos). */
+export function useSensors(filters?: { cinemaId?: string; roomId?: string; status?: "online" | "offline" | "alert" }) {
+  const key = `/api/sensors${toQuery(filters)}`
+  return useSWR<SensorWithContext[]>(key, fetcher, { refreshInterval: LIVE_REFRESH_MS })
 }
 
 export function useSensor(devEui: string | undefined) {

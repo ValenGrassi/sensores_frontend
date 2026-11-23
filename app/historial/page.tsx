@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from "@/components/ui/empty"
 import { SensorStatusIndicator } from "@/components/status-indicator"
 import type { DateRangePreset } from "@/lib/types"
+import { sensorLabel } from "@/lib/format"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 
@@ -33,24 +34,12 @@ export default function HistorialPage() {
     pageSize: PAGE_SIZE,
   })
 
-  React.useEffect(() => {
-    console.log("========== HISTORIAL ==========")
-    console.log("DATA COMPLETA:", data)
-    console.log("ROWS:", data?.rows)
-
-    if (data?.rows) {
-      data.rows.forEach((row, index) => {
-        console.log(`--- ROW ${index} ---`)
-        console.log("ID:", row.id)
-        console.log("Temperature:", row.temperature)
-        console.log("Humidity:", row.humidity)
-        console.log("Battery:", row.battery)
-        console.log("ROW COMPLETA:", row)
-      })
-    }
-  }, [data])
-  
   const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1
+
+  // Al cambiar de cine, el sensor elegido puede no pertenecer al nuevo.
+  React.useEffect(() => {
+    setSensorId("all")
+  }, [cinemaId])
 
   React.useEffect(() => {
     setPage(1)
@@ -77,7 +66,7 @@ export default function HistorialPage() {
               <SelectItem value="all">Todos los sensores</SelectItem>
               {sensors?.map((sensor) => (
                 <SelectItem key={sensor.id} value={sensor.id}>
-                  {sensor.name} · {sensor.cinema.name}
+                  {sensorLabel(sensor)} · {sensor.cinema?.name ?? "Sin sala asignada"}
                 </SelectItem>
               ))}
             </SelectGroup>

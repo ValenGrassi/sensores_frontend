@@ -25,26 +25,21 @@ const statusTabs: { value: "all" | SensorStatus; label: string }[] = [
 ]
 
 export default function SensoresPage() {
-  // const { cinemaId } = useCinemaFilter()
+  const { cinemaId } = useCinemaFilter()
   const [status, setStatus] = React.useState<"all" | SensorStatus>("all")
   const [query, setQuery] = React.useState("")
 
-  // const { data: sensors, isLoading } = useSensors({
-  //   cinemaId: cinemaId ?? undefined,
-  //   status: status === "all" ? undefined : status,
-  // })
-  const { data: sensors, isLoading, error } = useSensors()
+  const { data: sensors, isLoading, error } = useSensors({
+    cinemaId: cinemaId ?? undefined,
+    status: status === "all" ? undefined : status,
+  })
 
   const filtered = React.useMemo(() => {
     if (!sensors) return sensors
     if (!query.trim()) return sensors
     const q = query.trim().toLowerCase()
-    return sensors.filter(
-      (s) =>
-        s.name.toLowerCase().includes(q) ||
-        s.devEui.toLowerCase().includes(q) ||
-        s.cinema.name.toLowerCase().includes(q) ||
-        s.room.name.toLowerCase().includes(q),
+    return sensors.filter((s) =>
+      [s.name, s.devEui, s.cinema?.name, s.room?.name].some((text) => text?.toLowerCase().includes(q)),
     )
   }, [sensors, query])
 

@@ -178,9 +178,10 @@ export function EditSensorDialog({
   const { mutate } = useSWRConfig()
 
   const [open, setOpen] = React.useState(false)
-  const [name, setName] = React.useState(sensor.name)
-  const [cinemaId, setCinemaId] = React.useState(sensor.cinema.id)
-  const [roomId, setRoomId] = React.useState(sensor.room.id)
+  // Un sensor recién registrado no tiene nombre ni sala: el formulario arranca vacío.
+  const [name, setName] = React.useState(sensor.name ?? "")
+  const [cinemaId, setCinemaId] = React.useState(sensor.cinema?.id ?? "")
+  const [roomId, setRoomId] = React.useState(sensor.room?.id ?? "")
   const [submitting, setSubmitting] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
@@ -189,9 +190,9 @@ export function EditSensorDialog({
 
   React.useEffect(() => {
     if (open) {
-      setName(sensor.name)
-      setCinemaId(sensor.cinema.id)
-      setRoomId(sensor.room.id)
+      setName(sensor.name ?? "")
+      setCinemaId(sensor.cinema?.id ?? "")
+      setRoomId(sensor.room?.id ?? "")
       setError(null)
     }
   }, [open, sensor])
@@ -218,10 +219,10 @@ export function EditSensorDialog({
       })
 
       await Promise.all([
-        mutate("/api/sensors"),
-        mutate(`/api/sensors/${sensor.devEui}`),
+        // todas las listas de sensores (con o sin filtros) y el detalle de este
+        mutate((key) => typeof key === "string" && key.startsWith("/api/sensors")),
         mutate("/api/dashboard"),
-        mutate("/api/cinemas"),
+        mutate((key) => typeof key === "string" && key.startsWith("/api/cinemas")),
         // la sala nueva puede tener otro perfil: el backend reevalúa las alertas
         mutate((key) => typeof key === "string" && key.startsWith("/api/alerts")),
       ])
@@ -287,7 +288,7 @@ export function EditSensorDialog({
                 <SelectValue>
                   {cinemas?.find(
                     (cinema) => cinema.id === cinemaId
-                  )?.name}
+                  )?.name ?? "Elegí un cine"}
                 </SelectValue>
               </SelectTrigger>
 
@@ -324,7 +325,7 @@ export function EditSensorDialog({
                 <SelectValue>
                   {rooms?.find(
                     (room) => room.id === roomId
-                  )?.name}
+                  )?.name ?? "Elegí una sala"}
                 </SelectValue>
               </SelectTrigger>
 
